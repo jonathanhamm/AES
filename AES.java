@@ -1,3 +1,10 @@
+/*
+ * AES implementation. 
+ * CS 4153: Computer Security
+ * Project 1
+ * 
+ * Authors: Cameron Beckfield and Jonathan Hamm
+ */
 
 public class AES {
 	private final int Nb = 4;
@@ -6,6 +13,7 @@ public class AES {
 	private byte[] key;
 	private byte[][] state;
 
+	/*Class for Interfacing with the SBox*/
 	private static class SBox {
 		final private static byte[][] SBOX_= {
 			{0x63, 0x7c, 0x77, 0x7b, (byte)0xf2, 0x6b, 0x6f, (byte)0xc5, 0x30, 0x01, 0x67, 0x2b, (byte)0xfe, (byte)0xd7, (byte)0xab, 0x76},
@@ -25,13 +33,16 @@ public class AES {
 			{(byte)0xe1, (byte)0xf8, (byte)0x98, 0x11, 0x69, (byte)0xd9, (byte)0x8e, (byte)0x94, (byte)0x9b, 0x1e, (byte)0x87, (byte)0xe9, (byte)0xce, 0x55, 0x28, (byte)0xdf}, 
 			{(byte)0x8c, (byte)0xa1, (byte)0x89, 0x0d, (byte)0xbf, (byte)0xe6, 0x42, 0x68, 0x41, (byte)0x99, 0x2d, 0x0f, (byte)0xb0, 0x54, (byte)0xbb, 0x16}
 		};
+		/*Performs Substitution on plaintext*/
 		public static byte sub (byte b) {
 			return (byte)SBOX_[b >> 4][b & 0x0f];
 		}
+		/*Inverts Substitution onf plaintext*/
 		public static byte invert (byte b) {
 			return SBOX_[b & 0x0f][b >> 4];
 		}
 	}
+	/*Constructor*/
 	public AES (byte[] key) {
 		switch (key.length) {
 			case 16:
@@ -49,9 +60,13 @@ public class AES {
 		}
 		this.key = key;
 	}
-	
-	private void subBytes () {
 		
+	/*Perform Plaintext substitution*/
+	private void subBytes () {
+		for (int i = 0; i < Nk; i++) {
+			for (int j = 0; j < Nb; j++)
+				state[i][j] = SBox.sub(state[i][j]);
+		}
 	}
 	
 	private void shiftRows() {

@@ -1,7 +1,13 @@
 
 public class AES {
+	private final int Nb = 4;
+	private int Nk; 
+	private int Nr;
+	private byte[] key;
+	private byte[][] state;
+
 	private static class SBox {
-		final static byte[][] SBOX_= {
+		final private static byte[][] SBOX_= {
 			{0x63, 0x7c, 0x77, 0x7b, (byte)0xf2, 0x6b, 0x6f, (byte)0xc5, 0x30, 0x01, 0x67, 0x2b, (byte)0xfe, (byte)0xd7, (byte)0xab, 0x76},
 			{(byte)0xca, (byte)0x82, (byte)0xc9, 0x7d, (byte)0xfa, 0x59, 0x47, (byte)0xf0, (byte)0xad, (byte)0xd4, (byte)0xa2, (byte)0xaf, (byte)0x9c, (byte)0xa4, 0x72, (byte)0xc0},
 			{(byte)0xb7, (byte)0xfd, (byte)0x93, 0x26, 0x36, 0x3f, (byte)0xf7, (byte)0xcc, 0x34, (byte)0xa5, (byte)0xe5, (byte)0xf1, 0x71, (byte)0xd8, 0x31, 0x15},
@@ -19,13 +25,47 @@ public class AES {
 			{(byte)0xe1, (byte)0xf8, (byte)0x98, 0x11, 0x69, (byte)0xd9, (byte)0x8e, (byte)0x94, (byte)0x9b, 0x1e, (byte)0x87, (byte)0xe9, (byte)0xce, 0x55, 0x28, (byte)0xdf}, 
 			{(byte)0x8c, (byte)0xa1, (byte)0x89, 0x0d, (byte)0xbf, (byte)0xe6, 0x42, 0x68, 0x41, (byte)0x99, 0x2d, 0x0f, (byte)0xb0, 0x54, (byte)0xbb, 0x16}
 		};
-		public byte transform (byte b) {
-			return 0x33;
+		public static byte sub (byte b) {
+			return (byte)SBOX_[b >> 4][b & 0x0f];
 		}
-		public byte invert (byte b) {
-			return (byte)0xff;
+		public static byte invert (byte b) {
+			return SBOX_[b & 0x0f][b >> 4];
 		}
 	}
+	public AES (byte[] key) {
+		switch (key.length) {
+			case 16:
+				Nk = 4;
+				break;
+			case 24:
+				Nk = 6;
+				break;
+			case 32:
+				Nk = 8;
+				break;
+			default:
+				System.out.println("Invalid Key Length");
+				break;
+		}
+		this.key = key;
+	}
+	
+	private void subBytes () {
+		
+	}
+	
+	private void shiftRows() {
+		
+	}
+	
+	private void mixColumns() {
+		
+	}
+	
+	private void addRoundKey () {
+		
+	}
+	
 	public byte[] encrypt (byte[] plaintxt) {
 		return null;
 	}
@@ -33,6 +73,5 @@ public class AES {
 		return null;
 	}
 	public static void main (String[] args) {
-		System.out.printf("%1h\n", 0xff >> 4);
 	}
 }

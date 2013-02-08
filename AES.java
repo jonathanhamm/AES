@@ -35,7 +35,7 @@ public class AES {
 		};
 		/*Performs Substitution on plaintext*/
 		public static byte sub (byte b) {
-			return (byte)SBOX_[b >> 4][b & 0x0f];
+			return SBOX_[b >> 4][b & 0x0f];
 		}
 		/*Inverts Substitution onf plaintext*/
 		public static byte invert (byte b) {
@@ -81,7 +81,16 @@ public class AES {
 		
 	}
 	
+	private byte[] cipher (byte[] block) {
+		return null;
+	}
+	
 	public byte[] encrypt (byte[] plaintxt) {
+		int n = (plaintxt.length / (Nk << 2)) + ((plaintxt.length % (Nk <<2 ) != 0) ? 1 : 0);
+	
+		for (int i = 0; i < n; i++) {
+			
+		}
 		return null;
 	}
 	public byte[] decrypt (byte[] ciphertxt) {

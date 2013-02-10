@@ -12,7 +12,9 @@ public class AES {
 	private int Nr;
 	private byte[] key;
 	private byte[][] state;
-
+	private static byte[] tkey = {0x2b,0x7e,0x15,0x16,0x28,(byte)0xae,(byte)0xd2,(byte)0xa6,(byte)0xab,(byte)0xf7,0x15,(byte)0x88,0x09,(byte)0xcf,0x4f,0x3c};
+	private static byte[] tcipher = {0x32,0x43,(byte)0xf6,(byte)0xa8,(byte)0x88,0x5a,0x30,(byte)0x8d,0x31,0x31,(byte)0x98,(byte)0xa2,(byte)0xe0,0x37,0x07,0x34};
+	 
 	/*Class for Interfacing with the SBox*/
 	private static class SBox {
 		final private static byte[][] SBOX_= {
@@ -86,16 +88,23 @@ public class AES {
 	}
 	
 	public byte[] encrypt (byte[] plaintxt) {
-		int n = (plaintxt.length / (Nk << 2)) + ((plaintxt.length % (Nk <<2 ) != 0) ? 1 : 0);
-	
-		for (int i = 0; i < n; i++) {
-			
+		this.state = new byte[Nk][Nb];
+		for (int i = 0; i < Nk; i++) {
+			for (int j = 0; j < Nb; j++)
+				this.state[i][j] = plaintxt[4*i+j];
 		}
-		return null;
+		/*begin encryption here*/
+		for (int i = 0; i < Nk; i++) {
+			for (int j = 0; j < Nb; j++)
+				plaintxt[4*i+j] = this.state[i][j];
+		}
+		return plaintxt;
 	}
 	public byte[] decrypt (byte[] ciphertxt) {
 		return null;
 	}
 	public static void main (String[] args) {
+		AES test = new AES(tkey);
+		test.encrypt(tcipher);
 	}
 }

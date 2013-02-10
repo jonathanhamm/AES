@@ -87,6 +87,14 @@ public class AES {
 		return null;
 	}
 	
+	private static byte xtime (byte b)
+	{
+		return (byte)(b << 1);
+	}
+	private static byte multx (byte b) 
+	{
+		return 0x00;
+	}
 	public byte[] encrypt (byte[] plaintxt) {
 		this.state = new byte[Nk][Nb];
 		for (int i = 0; i < Nk; i++) {

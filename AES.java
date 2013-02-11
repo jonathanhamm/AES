@@ -93,19 +93,19 @@ public class AES {
 	}
 	private static byte multx (byte b1, byte b2) 
 	{
-		byte sr;
-		int ib1 = b1, ib2 = b2;	
-			
-		for (sr = 0x02; sr < ib2; ){
+		byte sr, i;
+		int ib1 = b1, ib2 = b2, accum;	
+		
+		for (accum = -1, i = 1, sr = 0x02; sr < ib2; i++){
 			sr = (byte)(sr << 1);
 			ib1 = (ib1 << 1);
-			if (((1 << 8) & ib1) != 0) {
+			if (((1 << 8) & ib1) != 0)
 				ib1 ^= 0x1b;
-				ib1 &= 0x000000ff; /*mask out some garbage bits*/	
-			}
-			System.out.printf("%02x,%02x\n",sr,ib1);
+			if (((byte)(1 << i) & b2) != 0)
+				accum = (accum == -1) ? ib1 : accum ^ ib1;
+			//System.out.printf("%02x,%02x\n",sr,ib1);
 		}
-		return (byte)ib1;
+		return (byte) ((accum)^b1);
 	}
 	public byte[] encrypt (byte[] plaintxt) {
 		this.state = new byte[Nk][Nb];
@@ -126,6 +126,6 @@ public class AES {
 	public static void main (String[] args) {
 		AES test = new AES(tkey);
 		test.encrypt(tcipher);
-		System.out.printf("0x%02x\n",multx((byte)0x57,(byte)0x13));
+		System.out.printf("0x%02x\n",multx((byte)0x1f,(byte)0xfe));
 	}
 }

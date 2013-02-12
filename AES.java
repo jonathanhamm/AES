@@ -91,19 +91,25 @@ public class AES {
 	}
 	
 	private void mixColumns() {
+		byte tmp[][] = new byte[Nk][Nb];
+		
+		for (int i = 0; i < Nk; i++) {
+			for (int j = 0; j < Nb; j++)
+				tmp[i][j] = this.state[i][j];
+		}
 		for (int c = 0; c < Nb; c++) {
-			this.state[0][c] = (byte) ((byte) (multx(0x02,this.state[0][c]) ^
-									  multx(0x03,this.state[1][c])) ^
-									  (this.state[2][c] ^ this.state[3][c]));
-			this.state[1][c] = (byte) ((byte) (this.state[0][c] ^ multx(0x02,this.state[1][c])) ^
-									  multx(0x03,this.state[2][c]) ^
-									  this.state[3][c]);
-			this.state[2][c] = (byte) ((byte) (this.state[0][c] ^ this.state[1][c]) ^
-									  multx(0x02,this.state[2][c]) ^
-									  multx(0x03,this.state[3][c]));
-			this.state[3][c] = (byte) ((byte) multx(0x03,this.state[0][c] ^
-									  (this.state[1][c] ^ this.state[2][c])) ^
-									  multx(0x02,this.state[3][c]));
+			this.state[0][c] = (byte) ((byte) (multx(0x02,tmp[0][c]) ^
+									  multx(0x03,tmp[1][c])) ^
+									  (this.state[2][c] ^ tmp[3][c]));
+			this.state[1][c] = (byte) ((byte) (tmp[0][c] ^ multx(0x02,tmp[1][c])) ^
+									  multx(0x03,tmp[2][c]) ^
+									  tmp[3][c]);
+			this.state[2][c] = (byte) ((byte) (tmp[0][c] ^ tmp[1][c]) ^
+									  multx(0x02,tmp[2][c]) ^
+									  multx(0x03,tmp[3][c]));
+			this.state[3][c] = (byte) ((byte) multx(0x03,tmp[0][c] ^
+									  (this.state[1][c] ^ tmp[2][c])) ^
+									  multx(0x02,tmp[3][c]));
 								
 		}
 	}

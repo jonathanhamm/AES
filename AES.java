@@ -71,26 +71,6 @@ public class AES {
 		}
 	}
 	
-	private void shiftRows() {
-		
-	}
-	
-	private void mixColumns() {
-		
-	}
-	
-	private void addRoundKey () {
-		
-	}
-	
-	private byte[] cipher (byte[] block) {
-		return null;
-	}
-	
-	private static byte xtime (byte b)
-	{
-		return (byte)(b << 1);
-	}
 	private static byte multx (int b, int x) 
 	{
 		byte accum, fin, i;
@@ -104,6 +84,35 @@ public class AES {
 				fin ^= accum;
 		}
 		return fin;
+	}
+	
+	private void shiftRows() {
+		
+	}
+	
+	private void mixColumns() {
+		for (int c = 0; c < Nb; c++) {
+			this.state[0][c] = (byte) ((byte) (multx(0x02,this.state[0][c]) ^
+									  multx(0x03,this.state[1][c])) ^
+									  (this.state[2][c] ^ this.state[3][c]));
+			this.state[1][c] = (byte) ((byte) (this.state[0][c] ^ multx(0x02,this.state[1][c])) ^
+									  multx(0x03,this.state[2][c]) ^
+									  this.state[3][c]);
+			this.state[2][c] = (byte) ((byte) (this.state[0][c] ^ this.state[1][c]) ^
+									  multx(0x02,this.state[2][c]) ^
+									  multx(0x03,this.state[3][c]));
+			this.state[3][c] = (byte) ((byte) multx(0x03,this.state[0][c] ^
+									  (this.state[1][c] ^ this.state[2][c])) ^
+									  multx(0x02,this.state[3][c]));
+								
+		}
+	}
+	
+	private void addRoundKey () {
+		
+	}
+	
+	private void cipher () {
 	}
 	public byte[] encrypt (byte[] plaintxt) {
 		this.state = new byte[Nk][Nb];

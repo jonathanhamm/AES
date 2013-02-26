@@ -86,8 +86,18 @@ public class AES {
 		return fin;
 	}
 	
-	private void shiftRows() {
-		
+	/* Shift rows - first row not affected */
+    private void shiftRows() {
+        byte tmp[][] = new byte[Nk][Nb];
+    	
+		for (int i = 0; i < Nk; i++) {
+			for (int j = 0; j < Nb; j++)
+				tmp[i][j] = this.state[i][j];
+		}
+        
+		for (int row = 1; row < Nb; row++) {
+            for (int col = 0; col < Nb; col++) {
+                this.state[row][col] = tmp[row][(col+row)%Nb];
 	}
 	
 	private void mixColumns() {

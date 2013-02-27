@@ -49,12 +49,15 @@ public class AES {
 		switch (key.length) {
 			case 16:
 				Nk = 4;
+                Nr = 10;
 				break;
 			case 24:
 				Nk = 6;
+                Nr = 12;
 				break;
 			case 32:
 				Nk = 8;
+                Nr = 14;
 				break;
 			default:
 				System.out.println("Invalid Key Length");
@@ -127,6 +130,24 @@ public class AES {
 	private void addRoundKey () {
 		
 	}
+    
+    private byte subWord (byte word) {
+        for(int i = 0; i < 4; i++)
+            word[i] = SBox.sub(word); // Is this correct????
+            
+        return word;
+    }
+    
+    private byte rotWord (byte word) {
+        byte holder = word[0];
+        
+        for(int i = 0; i < 3; i++)
+            word[i] = word[i+1];
+            
+        word[3] = holder;
+        
+        return word;
+    }
 	
 	private void cipher () {
 	}

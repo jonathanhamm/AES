@@ -93,13 +93,12 @@ public class AES {
     private void shiftRows() {
         byte tmp[][] = new byte[Nk][Nb];
     	
-		for (int i = 0; i < Nk; i++) {
+		for (int i = 0; i < Nk; i++)
 			for (int j = 0; j < Nb; j++)
 				tmp[i][j] = this.state[i][j];
-		}
         
-		for (int row = 1; row < Nb; row++) {
-            for (int col = 0; col < Nb; col++) {
+		for (int row = 1; row < Nb; row++)
+            for (int col = 0; col < Nb; col++)
                 this.state[row][col] = tmp[row][(col+row)%Nb];
 	}
 	
@@ -131,19 +130,19 @@ public class AES {
 		
 	}
     
-    private byte subWord (byte word) {
+    private byte[] subWord (byte word[]) {
         for(int i = 0; i < 4; i++)
-            word[i] = SBox.sub(word); // Is this correct????
-            
+            word[i] = SBox.sub(word[i]); // Is this correct?
+        
         return word;
     }
     
-    private byte rotWord (byte word) {
+    private byte[] rotWord (byte word[]) {
         byte holder = word[0];
         
         for(int i = 0; i < 3; i++)
             word[i] = word[i+1];
-            
+        
         word[3] = holder;
         
         return word;

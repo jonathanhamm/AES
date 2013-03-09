@@ -36,11 +36,11 @@ public class AES {
 			{(byte)0x8c, (byte)0xa1, (byte)0x89, 0x0d, (byte)0xbf, (byte)0xe6, 0x42, 0x68, 0x41, (byte)0x99, 0x2d, 0x0f, (byte)0xb0, 0x54, (byte)0xbb, 0x16}
 		};
 		/*Performs Substitution on plaintext*/
-		public static byte sub (byte b) {
+		public static byte sub (int b) {
 			return SBOX_[b >> 4][b & 0x0f];
 		}
 		/*Inverts Substitution onf plaintext*/
-		public static byte invert (byte b) {
+		public static byte invert (int b) {
 			return SBOX_[b & 0x0f][b >> 4];
 		}
 	}

@@ -147,6 +147,42 @@ public class AES {
         
         return word;
     }
+    
+    private void calcRcon () {
+        /* How should this be implemented?
+    	 * Instructions say it must be calculated.
+         * As needed or the max needed all at once?
+    	 */
+    	
+        for(int i = 1; i < 11; i++) // Fill up 1-10, 0 is provided
+            Rcon[i] = multx(Rcon[i-1]<<1, -(Rcon[i-1]>>7));
+    }
+    
+    private void keyExpansion () {
+        byte[][] w = new byte[Nb*(Nr+1)][4];
+    	byte[] temp = new byte[4];
+
+    	for (int i = 0; i < Nk; i++) {
+    		w[i][0] = tkey[4*i];
+    		w[i][1] = tkey[4*i+1];
+    		w[i][2] = tkey[4*i+2];
+    		w[i][3] = tkey[4*i+3];
+    	}
+    	
+    	for(int i = Nk; i < (Nb * (Nr+1)); i++) {
+    		for(int x = 0; x < 4; x++)
+    			temp[x] = w[i-1][x];
+    		if((i ^ Nk) == 0) {
+    			byte[] holder = subWord(rotWord(temp));
+    			
+    			for(int x = 0; x < 4; x++)
+    				temp[x] = (byte) (holder[x] ^ Rcon[i/Nk]);
+    		} else if((Nk > 6) && ((i ^ Nk) == 4)) 
+    			temp = subWord(temp);
+    		for(int x = 0; x < 4; x++)
+                w[i][x] = (byte) (w[i-Nk][x] ^ temp[x]);
+    	}
+    }
 	
 	private void cipher () {
 	}

@@ -49,12 +49,15 @@ public class AES {
 		switch (key.length) {
 			case 16:
 				Nk = 4;
+                Nr = 10;
 				break;
 			case 24:
 				Nk = 6;
+                Nr = 12;
 				break;
 			case 32:
 				Nk = 8;
+                Nr = 14;
 				break;
 			default:
 				System.out.println("Invalid Key Length");
@@ -86,8 +89,17 @@ public class AES {
 		return fin;
 	}
 	
-	private void shiftRows() {
-		
+	/* Shift rows - first row not affected */
+    private void shiftRows() {
+        byte tmp[][] = new byte[Nk][Nb];
+    	
+		for (int i = 0; i < Nk; i++)
+			for (int j = 0; j < Nb; j++)
+				tmp[i][j] = this.state[i][j];
+        
+		for (int row = 1; row < Nb; row++)
+            for (int col = 0; col < Nb; col++)
+                this.state[row][col] = tmp[row][(col+row)%Nb];
 	}
 	
 	private void mixColumns() {
@@ -117,6 +129,61 @@ public class AES {
 	private void addRoundKey () {
 		
 	}
+    
+    private byte[] subWord (byte word[]) {
+        for(int i = 0; i < 4; i++)
+            word[i] = SBox.sub(word[i]); // Is this correct?
+        
+        return word;
+    }
+    
+    private byte[] rotWord (byte word[]) {
+        byte holder = word[0];
+        
+        for(int i = 0; i < 3; i++)
+            word[i] = word[i+1];
+        
+        word[3] = holder;
+        
+        return word;
+    }
+    
+    private void calcRcon () {
+        /* How should this be implemented?
+    	 * Instructions say it must be calculated.
+         * As needed or the max needed all at once?
+    	 */
+    	
+        for(int i = 1; i < 11; i++) // Fill up 1-10, 0 is provided
+            Rcon[i] = multx(Rcon[i-1]<<1, -(Rcon[i-1]>>7));
+    }
+    
+    private void keyExpansion () {
+        calcRcon();
+        byte[][] w = new byte[Nb*(Nr+1)][4];
+    	byte[] temp = new byte[4];
+
+    	for (int i = 0; i < Nk; i++) {
+    		w[i][0] = tkey[4*i];
+    		w[i][1] = tkey[4*i+1];
+    		w[i][2] = tkey[4*i+2];
+    		w[i][3] = tkey[4*i+3];
+    	}
+    	
+    	for(int i = Nk; i < (Nb * (Nr+1)); i++) {
+    		for(int x = 0; x < 4; x++)
+    			temp[x] = w[i-1][x];
+    		if((i ^ Nk) == 0) {
+    			byte[] holder = subWord(rotWord(temp));
+    			
+    			for(int x = 0; x < 4; x++)
+    				temp[x] = (byte) (holder[x] ^ Rcon[i/Nk]);
+    		} else if((Nk > 6) && ((i ^ Nk) == 4)) 
+    			temp = subWord(temp);
+    		for(int x = 0; x < 4; x++)
+                w[i][x] = (byte) (w[i-Nk][x] ^ temp[x]);
+    	}
+    }
 	
 	private void cipher () {
 	}

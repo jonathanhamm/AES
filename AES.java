@@ -159,6 +159,7 @@ public class AES {
     }
     
     private void keyExpansion () {
+        calcRcon();
         byte[][] w = new byte[Nb*(Nr+1)][4];
     	byte[] temp = new byte[4];
 

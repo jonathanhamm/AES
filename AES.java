@@ -21,7 +21,7 @@ public class AES {
 			{0x63, 0x7c, 0x77, 0x7b, (byte)0xf2, 0x6b, 0x6f, (byte)0xc5, 0x30, 0x01, 0x67, 0x2b, (byte)0xfe, (byte)0xd7, (byte)0xab, 0x76},
 			{(byte)0xca, (byte)0x82, (byte)0xc9, 0x7d, (byte)0xfa, 0x59, 0x47, (byte)0xf0, (byte)0xad, (byte)0xd4, (byte)0xa2, (byte)0xaf, (byte)0x9c, (byte)0xa4, 0x72, (byte)0xc0},
 			{(byte)0xb7, (byte)0xfd, (byte)0x93, 0x26, 0x36, 0x3f, (byte)0xf7, (byte)0xcc, 0x34, (byte)0xa5, (byte)0xe5, (byte)0xf1, 0x71, (byte)0xd8, 0x31, 0x15},
-			{0x04, (byte)0xc7, 0x23, 0x18, (byte)0x96, 0x05, (byte)0x9a, 0x07, 0x12, (byte)0x80, (byte)0xe2, (byte)0xeb, 0x27, (byte)0xb2, 0x75}, 
+			{0x04, (byte)0xc7, 0x23, (byte)0xc3, 0x18, (byte)0x96, 0x05, (byte)0x9a, 0x07, 0x12, (byte)0x80, (byte)0xe2, (byte)0xeb, 0x27, (byte)0xb2, 0x75}, 
 			{0x09, (byte)0x83, 0x2c, 0x1a, 0x1b, 0x6e, 0x5a, (byte)0xa0, 0x52, 0x3b, (byte)0xd6, (byte)0xb3, 0x29, (byte)0xe3, 0x2f, (byte)0x84}, 
 			{0x53, (byte)0xd1, 0x00, (byte)0xed, 0x20, (byte)0xfc, (byte)0xb1, 0x5b, 0x6a, (byte)0xcb, (byte)0xbe, 0x39, 0x4a, 0x4c, 0x58, (byte)0xcf}, 
 			{(byte)0xd0, (byte)0xef, (byte)0xaa, (byte)0xfb, 0x43, 0x4d, 0x33, (byte)0x85, 0x45, (byte)0xf9, 0x02, 0x7f, 0x50, 0x3c, (byte)0x9f, (byte)0xa8},
@@ -37,10 +37,12 @@ public class AES {
 		};
 		/*Performs Substitution on plaintext*/
 		public static byte sub (int b) {
+			b &= 0x000000ff;
 			return SBOX_[b >> 4][b & 0x0f];
 		}
 		/*Inverts Substitution onf plaintext*/
 		public static byte invert (int b) {
+			b &= 0x000000ff;
 			return SBOX_[b & 0x0f][b >> 4];
 		}
 	}
@@ -131,9 +133,9 @@ public class AES {
 	}
     
     private byte[] subWord (byte word[]) {
-        for(int i = 0; i < 4; i++)
-            word[i] = SBox.sub(word[i]); // Is this correct?
-        
+    	for(int i = 0; i < 4; i++) {
+    		word[i] = SBox.sub(word[i]); // Is this correct?
+    	} 
         return word;
     }
     
@@ -154,8 +156,8 @@ public class AES {
          * As needed or the max needed all at once?
     	 */
     	
-        for(int i = 1; i < 11; i++) // Fill up 1-10, 0 is provided
-            Rcon[i] = multx(Rcon[i-1]<<1, -(Rcon[i-1]>>7));
+        /*for(int i = 1; i < 11; i++) // Fill up 1-10, 0 is provided
+            Rcon[i] = multx(Rcon[i-1]<<1, -(Rcon[i-1]>>7));*/
     }
     
     private void keyExpansion () {
@@ -176,8 +178,8 @@ public class AES {
     		if((i ^ Nk) == 0) {
     			byte[] holder = subWord(rotWord(temp));
     			
-    			for(int x = 0; x < 4; x++)
-    				temp[x] = (byte) (holder[x] ^ Rcon[i/Nk]);
+    	/*		for(int x = 0; x < 4; x++)
+    				temp[x] = (byte) (holder[x] ^ Rcon[i/Nk]);*/
     		} else if((Nk > 6) && ((i ^ Nk) == 4)) 
     			temp = subWord(temp);
     		for(int x = 0; x < 4; x++)
@@ -208,5 +210,6 @@ public class AES {
 		test.encrypt(tcipher);
 		//0x57 * 0x13
 		System.out.printf("Solution: 0x%02x\n",multx(0x03,0x5d));
+		test.keyExpansion();
 	}
 }

@@ -11,7 +11,9 @@ public class AES {
 	private int Nk; 
 	private int Nr;
 	private byte[] key;
+	private byte[][] w;
 	private byte[][] state;
+	private byte[] rcon;
 	private static byte[] tkey = {0x2b,0x7e,0x15,0x16,0x28,(byte)0xae,(byte)0xd2,(byte)0xa6,(byte)0xab,(byte)0xf7,0x15,(byte)0x88,0x09,(byte)0xcf,0x4f,0x3c};
 	private static byte[] tcipher = {0x32,0x43,(byte)0xf6,(byte)0xa8,(byte)0x88,0x5a,0x30,(byte)0x8d,0x31,0x31,(byte)0x98,(byte)0xa2,(byte)0xe0,0x37,0x07,0x34};
 	 
@@ -46,8 +48,40 @@ public class AES {
 			return SBOX_[b & 0x0f][b >> 4];
 		}
 	}
+	static public byte xtime (byte b, int i) {
+		return xtime_(b, i, 1);
+	}
+	static public byte xtime_ (byte b, int i, int pos) {
+		System.out.printf("0x%02x\n", b);
+
+		if (pos == i)
+			return b;
+		if ((b & (byte)0x80) == 0)
+			b = (byte)(b << 1);
+		else 
+			b = (byte)((byte)(b << 1) ^ (byte)0x1b);
+			
+		return xtime_(b, i, ++pos);
+	}
 	/*Constructor*/
 	public AES (byte[] key) {
+		/*Build rcon table*/
+		rcon = new byte[256];
+		/*
+		 * This initial value (0x8d) makes the key schedule table populate with the
+		 * correct values. The algorithm description begins at index 1, so 0x8d is
+		 * needed at index 0 as a start point. Got value from Wiki. 
+		 */
+		byte b = (byte)0x8d; 
+		for (int i = 0; i < 256; i++) {
+			rcon[i] = b;
+
+			if ((b & (byte)0x80) == 0)
+				b = (byte)(b << 1);
+			else 
+				b = (byte)((byte)(b << 1) ^ (byte)0x1b);
+		}
+		/*Set up other constants*/
 		switch (key.length) {
 			case 16:
 				Nk = 4;
@@ -66,6 +100,7 @@ public class AES {
 				break;
 		}
 		this.key = key;
+		w = new byte[Nb*(Nr+1)][4];
 	}
 		
 	/*Perform Plaintext substitution*/
@@ -128,7 +163,7 @@ public class AES {
 		}
 	}
 	
-	private void addRoundKey () {
+	private void addRoundKey (byte[] key) {
 		
 	}
     
@@ -162,7 +197,6 @@ public class AES {
     
     private void keyExpansion () {
         calcRcon();
-        byte[][] w = new byte[Nb*(Nr+1)][4];
     	byte[] temp = new byte[4];
 
     	for (int i = 0; i < Nk; i++) {
@@ -175,19 +209,27 @@ public class AES {
     	for(int i = Nk; i < (Nb * (Nr+1)); i++) {
     		for(int x = 0; x < 4; x++)
     			temp[x] = w[i-1][x];
-    		if((i ^ Nk) == 0) {
-    			byte[] holder = subWord(rotWord(temp));
-    			
-    	/*		for(int x = 0; x < 4; x++)
-    				temp[x] = (byte) (holder[x] ^ Rcon[i/Nk]);*/
-    		} else if((Nk > 6) && ((i ^ Nk) == 4)) 
+    		if((i % Nk) == 0) {
+    			temp = subWord(rotWord(temp));
+       		} else if((Nk > 6) && ((i % Nk) == 4)) 
     			temp = subWord(temp);
     		for(int x = 0; x < 4; x++)
                 w[i][x] = (byte) (w[i-Nk][x] ^ temp[x]);
     	}
     }
 	
-	private void cipher () {
+	private void cipher (byte[][] w) {		
+		addRoundKey(w[0]);
+		
+		for (int round = 1; round < Nr-1; round++) {
+			subBytes();
+			shiftRows();
+			mixColumns();
+			addRoundKey(null);
+		}
+		subBytes();
+		shiftRows();
+		addRoundKey(w[0]);
 	}
 	public byte[] encrypt (byte[] plaintxt) {
 		this.state = new byte[Nk][Nb];
@@ -205,11 +247,18 @@ public class AES {
 	public byte[] decrypt (byte[] ciphertxt) {
 		return null;
 	}
+
 	public static void main (String[] args) {
 		AES test = new AES(tkey);
 		test.encrypt(tcipher);
 		//0x57 * 0x13
 		System.out.printf("Solution: 0x%02x\n",multx(0x03,0x5d));
 		test.keyExpansion();
+		System.out.println("Rcon:");
+		for (int i = 0; i < 256; i++) {
+			if (i > 0 && (i % 16) == 0)
+				System.out.println("");
+			System.out.printf("0x%02x, ", test.rcon[i]);
+		}
 	}
 }

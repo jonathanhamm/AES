@@ -8,12 +8,13 @@
 
 public class AES {
 	private final int Nb = 4;
+	private final int WORD = 4;
 	private int Nk; 
 	private int Nr;
 	private byte[] key;
 	private byte[][] w;
 	private byte[][] state;
-	private byte[] rcon;
+	private byte[][] rcon;
 	private static byte[] tkey = {0x2b,0x7e,0x15,0x16,0x28,(byte)0xae,(byte)0xd2,(byte)0xa6,(byte)0xab,(byte)0xf7,0x15,(byte)0x88,0x09,(byte)0xcf,0x4f,0x3c};
 	private static byte[] tcipher = {0x32,0x43,(byte)0xf6,(byte)0xa8,(byte)0x88,0x5a,0x30,(byte)0x8d,0x31,0x31,(byte)0x98,(byte)0xa2,(byte)0xe0,0x37,0x07,0x34};
 	 
@@ -66,7 +67,7 @@ public class AES {
 	/*Constructor*/
 	public AES (byte[] key) {
 		/*Build rcon table*/
-		rcon = new byte[256];
+		rcon = new byte[256][WORD];
 		/*
 		 * This initial value (0x8d) makes the key schedule table populate with the
 		 * correct values. The algorithm description begins at index 1, so 0x8d is
@@ -74,8 +75,7 @@ public class AES {
 		 */
 		byte b = (byte)0x8d; 
 		for (int i = 0; i < 256; i++) {
-			rcon[i] = b;
-
+			rcon[i][0] = b;
 			if ((b & (byte)0x80) == 0)
 				b = (byte)(b << 1);
 			else 
@@ -258,7 +258,7 @@ public class AES {
 		for (int i = 0; i < 256; i++) {
 			if (i > 0 && (i % 16) == 0)
 				System.out.println("");
-			System.out.printf("0x%02x, ", test.rcon[i]);
+			System.out.printf("0x%02x, ", test.rcon[i][0]);
 		}
 	}
 }

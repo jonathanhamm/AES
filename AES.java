@@ -49,20 +49,10 @@ public class AES {
 			return SBOX_[b & 0x0f][b >> 4];
 		}
 	}
-	static public byte xtime (byte b, int i) {
-		return xtime_(b, i, 1);
-	}
-	static public byte xtime_ (byte b, int i, int pos) {
-		System.out.printf("0x%02x\n", b);
-
-		if (pos == i)
-			return b;
-		if ((b & (byte)0x80) == 0)
-			b = (byte)(b << 1);
-		else 
-			b = (byte)((byte)(b << 1) ^ (byte)0x1b);
-			
-		return xtime_(b, i, ++pos);
+	static public byte xtime (byte b) {
+		if ((b & (byte)0x80) != 0)
+			return (byte)((b << 1) ^ 0x1b);
+		return (byte)(b << 1);
 	}
 	/*Constructor*/
 	public AES (byte[] key) {
@@ -111,19 +101,19 @@ public class AES {
 		}
 	}
 	
-	private static byte multx (int b, int x) 
+	private static byte multx (byte b, byte x) 
 	{
-		byte accum, fin, i;
-		int sr;
-		for (accum = (byte)b, sr = 0x02, fin = (byte)b, i = 1; sr < x; sr = (sr << 1), i++) {
-			if ((byte)(0x80 & accum) != 0)
-				accum = (byte)((accum << 1) ^ 0x1b);
-			else
-				accum = (byte)(accum << 1);
-			if (((1 << i) & x) != 0)
-				fin ^= accum;
+		byte prod = 0, shift = 1, xt;
+		
+		xt = b;
+		do {
+			if ((x & shift) != 0)
+				prod ^= xt;
+			xt = xtime (xt);
+			shift <<= 1;
 		}
-		return fin;
+		while (shift != 0 && ((int)shift & 0x000000ff) < ((int)x & 0x0000000ff));
+		return prod;
 	}
 	
 	/* Shift rows - first row not affected */
@@ -133,7 +123,6 @@ public class AES {
 		for (int i = 0; i < Nk; i++)
 			for (int j = 0; j < Nb; j++)
 				tmp[i][j] = this.state[i][j];
-        
 		for (int row = 1; row < Nb; row++)
             for (int col = 0; col < Nb; col++)
                 this.state[row][col] = tmp[row][(col+row)%Nb];
@@ -141,30 +130,46 @@ public class AES {
 	
 	private void mixColumns() {
 		byte tmp[][] = new byte[Nk][Nb];
-		
+		/*byte[][] test = {
+				{(byte)0xd4,(byte)0xe0,(byte)0xb8,0x1e},
+				{(byte)0xbf,(byte)0xb4,0x41,0x27},
+				{0x5d,0x52,0x11,(byte)0x98},
+				{0x30,(byte)0xae,(byte)0xf1,(byte)0xe5}
+		};
+		for (int i = 0; i < Nk; i++){
+			for (int j = 0; j < Nb; j++)
+				this.state[i][j] = test[i][j];
+		}*/
 		for (int i = 0; i < Nk; i++) {
 			for (int j = 0; j < Nb; j++)
 				tmp[i][j] = this.state[i][j];
 		}
+		System.out.println("test: ");
+		this.printstate();
+		System.out.println("\n");
 		for (int c = 0; c < Nb; c++) {
-			this.state[0][c] = (byte) ((byte) (multx(0x02,tmp[0][c]) ^
-									  multx(0x03,tmp[1][c])) ^
-									  (this.state[2][c] ^ tmp[3][c]));
-			this.state[1][c] = (byte) ((byte) (tmp[0][c] ^ multx(0x02,tmp[1][c])) ^
-									  multx(0x03,tmp[2][c]) ^
+			this.state[0][c] = (byte) ((byte) (multx((byte) 0x02,tmp[0][c]) ^
+									  multx((byte) 0x03,tmp[1][c])) ^
+									  (tmp[2][c] ^ tmp[3][c]));
+			this.state[1][c] = (byte) ((byte) (tmp[0][c] ^ multx((byte) 0x02,tmp[1][c])) ^
+									  multx((byte) 0x03,tmp[2][c]) ^
 									  tmp[3][c]);
 			this.state[2][c] = (byte) ((byte) (tmp[0][c] ^ tmp[1][c]) ^
-									  multx(0x02,tmp[2][c]) ^
-									  multx(0x03,tmp[3][c]));
-			this.state[3][c] = (byte) ((byte) multx(0x03,tmp[0][c] ^
-									  (this.state[1][c] ^ tmp[2][c])) ^
-									  multx(0x02,tmp[3][c]));
-								
+									  multx((byte) 0x02,tmp[2][c]) ^
+									  multx((byte) 0x03,tmp[3][c]));
+			this.state[3][c] = (byte) ((byte) multx((byte) 0x03,tmp[0][c]) ^
+									  (tmp[1][c] ^ tmp[2][c]) ^
+									  multx((byte) 0x02,tmp[3][c]));
 		}
+		this.printstate();
+		System.out.println("\n\n");
 	}
 	
-	private void addRoundKey (byte[] key) {
-		
+	private void addRoundKey (byte[][] words, int start) {
+		for (int i = 0; i < state.length; i++) {
+			for (int j = 0; j < WORD; j++)
+				state[i][j] ^= words[start+i][j];
+		}
 	}
     
     private byte[] subWord (byte word[]) {
@@ -196,7 +201,6 @@ public class AES {
     }
     
     private void keyExpansion () {
-        calcRcon();
     	byte[] temp = new byte[4];
 
     	for (int i = 0; i < Nk; i++) {
@@ -211,6 +215,7 @@ public class AES {
     			temp[x] = w[i-1][x];
     		if((i % Nk) == 0) {
     			temp = subWord(rotWord(temp));
+    			temp[0] ^= rcon[i/Nk][0];
        		} else if((Nk > 6) && ((i % Nk) == 4)) 
     			temp = subWord(temp);
     		for(int x = 0; x < 4; x++)
@@ -218,18 +223,18 @@ public class AES {
     	}
     }
 	
-	private void cipher (byte[][] w) {		
-		addRoundKey(w[0]);
+	private void cipher () {		
+		addRoundKey(w, 0);
 		
 		for (int round = 1; round < Nr-1; round++) {
 			subBytes();
 			shiftRows();
 			mixColumns();
-			addRoundKey(null);
+			addRoundKey(w, round*Nb);
 		}
 		subBytes();
 		shiftRows();
-		addRoundKey(w[0]);
+		addRoundKey(w, Nr*Nb);
 	}
 	public byte[] encrypt (byte[] plaintxt) {
 		this.state = new byte[Nk][Nb];
@@ -242,23 +247,33 @@ public class AES {
 			for (int j = 0; j < Nb; j++)
 				plaintxt[4*i+j] = this.state[i][j];
 		}
+		cipher();
 		return plaintxt;
 	}
 	public byte[] decrypt (byte[] ciphertxt) {
 		return null;
 	}
-
+	public void printstate () {
+		for (int i = 0; i < state.length; i++) {
+			for (int j = 0; j < state[i].length; j++)
+				System.out.printf("0x%02x, ", state[i][j]);
+			System.out.println("");
+		}
+	}
 	public static void main (String[] args) {
 		AES test = new AES(tkey);
-		test.encrypt(tcipher);
 		//0x57 * 0x13
-		System.out.printf("Solution: 0x%02x\n",multx(0x03,0x5d));
 		test.keyExpansion();
-		System.out.println("Rcon:");
-		for (int i = 0; i < 256; i++) {
-			if (i > 0 && (i % 16) == 0)
-				System.out.println("");
-			System.out.printf("0x%02x, ", test.rcon[i][0]);
+		for (int i = 0; i < test.w.length; i++) {
+			System.out.print(i+":\t");
+			for (int j = 0; j < test.w[i].length; j++)
+				System.out.printf("0x%02x, ", test.w[i][j]);
+			System.out.println("");
 		}
+		test.encrypt(tcipher);
+		System.out.println("\nCurrent state:");
+		test.printstate();
+		//System.out.printf("\n\n0x%02x\n",test.xtime((byte)0x03, (byte)(0xbf & 0x000000ff)));
+		System.out.printf("\n\n0x%02x\n",test.multx((byte)0x03, (byte)0xbf));
 	}
 }

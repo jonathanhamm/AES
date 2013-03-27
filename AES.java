@@ -184,15 +184,21 @@ public class AES {
         return word;
     }
     
-    private void calcRcon () {
-        /* How should this be implemented?
-    	 * Instructions say it must be calculated.
-         * As needed or the max needed all at once?
-    	 */
-    	
-        /*for(int i = 1; i < 11; i++) // Fill up 1-10, 0 is provided
-            Rcon[i] = multx(Rcon[i-1]<<1, -(Rcon[i-1]>>7));*/
-    }
+    /* Inverse shift rows - first row not affected */
+    private void invShiftRows() {
+        byte tmp[][] = new byte[Nk][Nb];
+        
+        // Hard copy current state
+		for (int i = 0; i < Nk; i++)
+			for (int j = 0; j < Nb; j++)
+				tmp[i][j] = this.state[i][j];
+                
+        // Shift rows
+		for (int row = 1; row < Nb; row++)
+            for (int col = 0; col < Nb; col++)
+                this.state[row][(col+row)%Nb] = tmp[row][col];
+	}
+	
     
     private void keyExpansion () {
     	byte[] temp = new byte[4];

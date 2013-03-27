@@ -132,16 +132,7 @@ public class AES {
 	
 	private void mixColumns() {
 		byte tmp[][] = new byte[Nk][Nb];
-		/*byte[][] test = {
-				{(byte)0xd4,(byte)0xe0,(byte)0xb8,0x1e},
-				{(byte)0xbf,(byte)0xb4,0x41,0x27},
-				{0x5d,0x52,0x11,(byte)0x98},
-				{0x30,(byte)0xae,(byte)0xf1,(byte)0xe5}
-		};
-		for (int i = 0; i < Nk; i++){
-			for (int j = 0; j < Nb; j++)
-				this.state[i][j] = test[i][j];
-		}*/
+        
 		for (int i = 0; i < Nk; i++) {
 			for (int j = 0; j < Nb; j++)
 				tmp[i][j] = this.state[i][j];
@@ -197,6 +188,26 @@ public class AES {
 		for (int row = 1; row < Nb; row++)
             for (int col = 0; col < Nb; col++)
                 this.state[row][(col+row)%Nb] = tmp[row][col];
+	}
+    
+    /* Inverse Mix Columns */
+    private void invMixColumns() {
+    	byte tmp[][] = new byte[Nk][Nb];
+        
+		for (int i = 0; i < Nk; i++) {
+			for (int j = 0; j < Nb; j++)
+				tmp[i][j] = this.state[i][j];
+		}
+		for (int c = 0; c < Nb; c++) {
+			state[0][c] = (byte) (multx((byte)0x0e,tmp[0][c]) ^ (byte)multx((byte)0x0b,tmp[1][c])
+						  ^ (byte)multx((byte)0x0d,tmp[2][c]) ^ (byte)multx((byte)0x09,tmp[3][c]));
+			state[1][c] = (byte) (multx((byte)0x09,tmp[0][c]) ^ (byte)multx((byte)0x0e,tmp[1][c])
+                          ^ (byte)multx((byte)0x0b,tmp[2][c]) ^ (byte)multx((byte)0x0d,tmp[3][c]));
+    		state[2][c] = (byte) (multx((byte)0x0d,tmp[0][c]) ^ (byte)multx((byte)0x09,tmp[1][c])
+						  ^ (byte)multx((byte)0x0e,tmp[2][c]) ^ (byte)multx((byte)0x0b,tmp[3][c]));
+    		state[3][c] = (byte) (multx((byte)0x0b,tmp[0][c]) ^ (byte)multx((byte)0x0d,tmp[1][c])
+						  ^ (byte)multx((byte)0x09,tmp[2][c]) ^ (byte)multx((byte)0x0e,tmp[3][c]));
+		}
 	}
 	
     

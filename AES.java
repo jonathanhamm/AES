@@ -92,6 +92,7 @@ public class AES {
 		}
 		this.key = key;
 		w = new byte[Nb*(Nr+1)][4];
+		keyExpansion();
 	}
 		
 	/*Perform Plaintext substitution*/
@@ -272,7 +273,6 @@ public class AES {
 	public static void main (String[] args) {
 		AES test = new AES(tkey);
 		//0x57 * 0x13
-		test.keyExpansion();
 		for (int i = 0; i < test.w.length; i++) {
 			System.out.print(i+":\t");
 			for (int j = 0; j < test.w[i].length; j++)
